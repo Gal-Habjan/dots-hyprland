@@ -24,7 +24,7 @@ bindit = ,Super_L, global, quickshell:workspaceNumber # [hidden]
 bindit = ,Super_R, global, quickshell:workspaceNumber # [hidden]
 bindd = Super, V, Clipboard history >> clipboard, global, quickshell:overviewClipboardToggle # Clipboard history >> clipboard
 bindd = Super, Period, Emoji >> clipboard, global, quickshell:overviewEmojiToggle # Emoji >> clipboard
-#bindd = Super, Tab, Toggle overview, global, quickshell:overviewToggle # [hidden] Toggle overview/launcher (alt)
+bindd = Super, Tab, Toggle overview, global, quickshell:overviewToggle # [hidden] Toggle overview/launcher (alt)
 bindd = Super, A, Toggle left sidebar, global, quickshell:sidebarLeftToggle # Toggle left sidebar
 bind = Super+Alt, A, global, quickshell:sidebarLeftToggleDetach # [hidden]
 bind = Super, B, global, quickshell:sidebarLeftToggle # [hidden]
@@ -39,7 +39,7 @@ bindd = Super, J, Toggle bar, global, quickshell:barToggle # Toggle bar
 bind = Ctrl+Alt, Delete, exec, qs -c $qsConfig ipc call TEST_ALIVE || pkill wlogout || wlogout -p layer-shell # [hidden] Session menu (fallback)
 bind = Shift+Super+Alt, Slash, exec, qs -p ~/.config/quickshell/$qsConfig/welcome.qml # [hidden] Launch welcome app
 
-bindle=, XF86MonBrightnessUp, exec, qs -c $qsConfig ipc call brightness increment || brightnessctl,5%+ # [hidden]
+bindle=, XF86MonBrightnessUp, exec, qs -c $qsConfig ipc call brightness increment || brightnessctl s 5%+ # [hidden]
 bindle=, XF86MonBrightnessDown, exec, qs -c $qsConfig ipc call brightness decrement || brightnessctl s 5%- # [hidden]
 bindle=, XF86AudioRaiseVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%+ # [hidden]
 bindle=, XF86AudioLowerVolume, exec, wpctl set-volume @DEFAULT_AUDIO_SINK@ 2%- # [hidden]
@@ -133,9 +133,9 @@ bind = Super+Shift, Page_Up, movetoworkspace, r-1  # [hidden]
 bind = Ctrl+Super+Shift, Right, movetoworkspace, r+1 # [hidden]
 bind = Ctrl+Super+Shift, Left, movetoworkspace, r-1 # [hidden]
 
-bind = Super+Shift, Tab, movetoworkspacesilent, special # Send to scratchpad
+bind = Super+Alt, S, movetoworkspacesilent, special # Send to scratchpad
 
-bind = Ctrl+Super, Tab, togglespecialworkspace, # [hidden]
+bind = Ctrl+Super, S, togglespecialworkspace, # [hidden]
 
 ##! Workspace
 # Switching
@@ -168,7 +168,7 @@ bind = Super, mouse_down, workspace, -1 # [hidden]
 bind = Ctrl+Super, mouse_up, workspace, r+1 # [hidden]
 bind = Ctrl+Super, mouse_down, workspace, r-1 # [hidden]
 ## Special
-#đbind = Super, S, togglespecialworkspace, # Toggle scratchpad
+bind = Super, S, togglespecialworkspace, # Toggle scratchpad
 bind = Super, mouse:275, togglespecialworkspace, # [hidden]
 bind = Ctrl+Super, BracketLeft, workspace, -1 # [hidden]
 bind = Ctrl+Super, BracketRight, workspace, +1 # [hidden]
