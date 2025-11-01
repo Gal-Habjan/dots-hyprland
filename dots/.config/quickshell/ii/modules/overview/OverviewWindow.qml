@@ -1,3 +1,4 @@
+pragma ComponentBehavior: Bound
 import qs
 import qs.services
 import qs.modules.common
@@ -14,17 +15,31 @@ Item { // Window
     property var windowData
     property var monitorData
     property var scale
-    property var availableWorkspaceWidth
-    property var availableWorkspaceHeight
     property bool restrictToWorkspace: true
-    property real initX: Math.max((windowData?.at[0] - (monitorData?.x ?? 0) - monitorData?.reserved[0]) * root.scale, 0) + xOffset
-    property real initY: Math.max((windowData?.at[1] - (monitorData?.y ?? 0) - monitorData?.reserved[1]) * root.scale, 0) + yOffset
+    property real widthRatio: {
+        const widgetWidth = widgetMonitor.transform & 1 ? widgetMonitor.height : widgetMonitor.width;
+        const monitorWidth = monitorData.transform & 1 ? monitorData.height : monitorData.width;
+        return (widgetWidth * monitorData.scale) / (monitorWidth * widgetMonitor.scale);
+    }
+    property real heightRatio: {
+        const widgetHeight = widgetMonitor.transform & 1 ? widgetMonitor.width : widgetMonitor.height;
+        const monitorHeight = monitorData.transform & 1 ? monitorData.width : monitorData.height;
+        return (widgetHeight * monitorData.scale) / (monitorHeight * widgetMonitor.scale);
+    }
+    property real initX: {
+        return Math.max((windowData?.at[0] - (monitorData?.x ?? 0) - monitorData?.reserved[0]) * widthRatio * root.scale, 0) + xOffset;
+    }
+
+    property real initY: {
+        return Math.max((windowData?.at[1] - (monitorData?.y ?? 0) - monitorData?.reserved[1]) * heightRatio * root.scale, 0) + yOffset;
+    }
     property real xOffset: 0
     property real yOffset: 0
-    property int widgetMonitorId: 0
-    
-    property var targetWindowWidth: windowData?.size[0] * scale
-    property var targetWindowHeight: windowData?.size[1] * scale
+    property var widgetMonitor
+    property int widgetMonitorId: widgetMonitor.id
+
+    property var targetWindowWidth: windowData?.size[0] * scale * widthRatio
+    property var targetWindowHeight: windowData?.size[1] * scale * heightRatio
     property bool hovered: false
     property bool pressed: false
 
@@ -35,19 +50,27 @@ Item { // Window
     property bool compactMode: Appearance.font.pixelSize.smaller * 4 > targetWindowHeight || Appearance.font.pixelSize.smaller * 4 > targetWindowWidth
 
     property bool indicateXWayland: windowData?.xwayland ?? false
-    
+
     x: initX
     y: initY
-    width: windowData?.size[0] * root.scale
-    height: windowData?.size[1] * root.scale
+    width: targetWindowWidth
+    height: targetWindowHeight
     opacity: windowData.monitor == widgetMonitorId ? 1 : 0.4
+
+    property real topLeftRadius
+    property real topRightRadius
+    property real bottomLeftRadius
+    property real bottomRightRadius
 
     layer.enabled: true
     layer.effect: OpacityMask {
         maskSource: Rectangle {
             width: root.width
             height: root.height
-            radius: Appearance.rounding.windowRounding * root.scale
+            topLeftRadius: root.topLeftRadius
+            topRightRadius: root.topRightRadius
+            bottomRightRadius: root.bottomRightRadius
+            bottomLeftRadius: root.bottomLeftRadius
         }
     }
 
@@ -73,11 +96,14 @@ Item { // Window
         // Color overlay for interactions
         Rectangle {
             anchors.fill: parent
-            radius: Appearance.rounding.windowRounding * root.scale
+            topLeftRadius: root.topLeftRadius
+            topRightRadius: root.topRightRadius
+            bottomRightRadius: root.bottomRightRadius
+            bottomLeftRadius: root.bottomLeftRadius
             color: pressed ? ColorUtils.transparentize(Appearance.colors.colLayer2Active, 0.5) : 
                 hovered ? ColorUtils.transparentize(Appearance.colors.colLayer2Hover, 0.7) : 
                 ColorUtils.transparentize(Appearance.colors.colLayer2)
-            border.color : ColorUtils.transparentize(Appearance.m3colors.m3outline, 0.7)
+            border.color : ColorUtils.transparentize(Appearance.m3colors.m3outline, 0.88)
             border.width : 1
         }
 
@@ -90,7 +116,7 @@ Item { // Window
                 // console.log("Icon ratio:", root.compactMode ? root.iconToWindowRatioCompact : root.iconToWindowRatio)
                 // console.log("Scale:", root.monitorData.scale)
                 // console.log("Final:", Math.min(targetWindowWidth, targetWindowHeight) * (root.compactMode ? root.iconToWindowRatioCompact : root.iconToWindowRatio) / root.monitorData.scale)
-                return Math.min(targetWindowWidth, targetWindowHeight) * (root.compactMode ? root.iconToWindowRatioCompact : root.iconToWindowRatio) / root.monitorData.scale;
+                return Math.min(root.targetWindowWidth, root.targetWindowHeight) * (root.compactMode ? root.iconToWindowRatioCompact : root.iconToWindowRatio);
             }
             // mipmap: true
             Layout.alignment: Qt.AlignHCenter

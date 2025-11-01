@@ -5,10 +5,12 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
+import Qt.labs.synchronizer
 
 Item {
     id: root
     required property var scopeRoot
+    property int sidebarPadding: 10
     anchors.fill: parent
     property bool aiChatEnabled: Config.options.policies.ai !== 0
     property bool translatorEnabled: Config.options.sidebar.translator.enable
@@ -57,9 +59,8 @@ Item {
             id: tabBar
             visible: root.tabButtonList.length > 1
             tabButtonList: root.tabButtonList
-            externalTrackedTab: root.selectedTab
-            function onCurrentIndexChanged(currentIndex) {
-                root.selectedTab = currentIndex
+            Synchronizer on currentIndex {
+                property alias source: root.selectedTab
             }
         }
 
@@ -70,7 +71,7 @@ Item {
             Layout.fillHeight: true
             spacing: 10
             
-            currentIndex: tabBar.externalTrackedTab
+            currentIndex: root.selectedTab
             onCurrentIndexChanged: {
                 tabBar.enableIndicatorAnimation = true
                 root.selectedTab = currentIndex

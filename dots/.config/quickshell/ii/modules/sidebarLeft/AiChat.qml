@@ -3,7 +3,7 @@ import qs.services
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.modules.common.functions
-import "./aiChat/"
+import qs.modules.sidebarLeft.aiChat
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
@@ -369,6 +369,7 @@ Inline w/ backslash and round brackets \\(e^{i\\pi} + 1 = 0\\)
                 icon: "neurology"
                 title: Translation.tr("Large language models")
                 description: Translation.tr("Type /key to get started with online models\nCtrl+O to expand the sidebar\nCtrl+P to detach sidebar into a window")
+                shape: MaterialShape.Shape.PixelCircle
             }
 
             ScrollToBottomButton {

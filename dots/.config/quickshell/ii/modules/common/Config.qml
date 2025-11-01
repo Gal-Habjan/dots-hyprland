@@ -10,6 +10,7 @@ Singleton {
     property alias options: configOptionsJsonAdapter
     property bool ready: false
     property int readWriteDelay: 50 // milliseconds
+    property bool blockWrites: false
 
     function setNestedValue(nestedKey, value) {
         let keys = nestedKey.split(".");
@@ -63,6 +64,7 @@ Singleton {
         id: configFileView
         path: root.filePath
         watchChanges: true
+        blockWrites: root.blockWrites
         onFileChanged: fileReloadTimer.restart()
         onAdapterUpdated: fileWriteTimer.restart()
         onLoaded: root.ready = true
@@ -139,6 +141,7 @@ Singleton {
                 property string networkEthernet: "kcmshell6 kcm_networkmanagement"
                 property string taskManager: "plasma-systemmonitor --page-name Processes"
                 property string terminal: "kitty -1" // This is only for shell actions
+                property string volumeMixer: `~/.config/hypr/hyprland/scripts/launch_first_available.sh "pavucontrol-qt" "pavucontrol"`
             }
 
             property JsonObject background: JsonObject {
@@ -161,6 +164,10 @@ Singleton {
                         property bool hourMarks: false
                         property bool dateInClock: true
                         property bool constantlyRotate: false
+                        property bool useSineCookie: false
+                    }
+                    property JsonObject digital: JsonObject {
+                        property bool animateChange: true
                     }
                     
                 }
@@ -191,6 +198,7 @@ Singleton {
                 }
                 property bool bottom: false // Instead of top
                 property int cornerStyle: 0 // 0: Hug | 1: Float | 2: Plain rectangle
+                property bool floatStyleShadow: true // Show shadow behind bar when cornerStyle == 1 (Float)
                 property bool borderless: false // true for no grouping of items
                 property string topLeftIcon: "spark" // Options: "distro" or any icon name in ~/.config/quickshell/ii/assets/icons
                 property bool showBackground: true
@@ -211,12 +219,14 @@ Singleton {
                     property bool showKeyboardToggle: true
                     property bool showDarkModeToggle: true
                     property bool showPerformanceProfileToggle: false
+                    property bool showScreenRecord: false
                 }
                 property JsonObject tray: JsonObject {
                     property bool monochromeIcons: true
                     property bool showItemId: false
                     property bool invertPinnedItems: true // Makes the below a whitelist for the tray and blacklist for the pinned area
                     property list<string> pinnedItems: [ ]
+                    property bool filterPassive: true
                 }
                 property JsonObject workspaces: JsonObject {
                     property bool monochromeIcons: true
@@ -244,6 +254,7 @@ Singleton {
             property JsonObject battery: JsonObject {
                 property int low: 20
                 property int critical: 5
+                property int full: 101
                 property bool automaticSuspend: true
                 property int suspend: 3
             }
@@ -298,6 +309,9 @@ Singleton {
                     property string to: "06:30"   // Format: "HH:mm", 24-hour time
                     property int colorTemperature: 5000
                 }
+                property JsonObject antiFlashbang: JsonObject {
+                    property bool enable: false
+                }
             }
 
             property JsonObject lock: JsonObject {
@@ -314,6 +328,7 @@ Singleton {
                     property bool unlockKeyring: true
                     property bool requirePasswordToPower: false
                 }
+                property bool materialShapeChars: true
             }
 
             property JsonObject media: JsonObject {
@@ -345,8 +360,31 @@ Singleton {
                 property real columns: 5
             }
 
+            property JsonObject regionSelector: JsonObject {
+                property JsonObject targetRegions: JsonObject {
+                    property bool windows: true
+                    property bool layers: false
+                    property bool content: true
+                    property bool showLabel: false
+                    property real opacity: 0.3
+                    property real contentRegionOpacity: 0.8
+                }
+                property JsonObject rect: JsonObject {
+                    property bool showAimLines: true
+                }
+                property JsonObject circle: JsonObject {
+                    property int strokeWidth: 6
+                    property int padding: 10
+                }
+            }
+
             property JsonObject resources: JsonObject {
                 property int updateInterval: 3000
+            }
+
+            property JsonObject musicRecognition: JsonObject {
+                property int timeout: 16
+                property int interval: 4
             }
 
             property JsonObject search: JsonObject {
@@ -364,6 +402,10 @@ Singleton {
                     property string shellCommand: "$"
                     property string webSearch: "?"
                 }
+                property JsonObject imageSearch: JsonObject {
+                    property string imageSearchEngineBaseUrl: "https://lens.google.com/uploadbyurl?url="
+                    property bool useCircleSelection: false
+                }
             }
 
             property JsonObject sidebar: JsonObject {
@@ -373,7 +415,7 @@ Singleton {
                     property int delay: 300 // Delay before sending request. Reduces (potential) rate limits and lag.
                 }
                 property JsonObject ai: JsonObject {
-                    property bool textFadeIn: true
+                    property bool textFadeIn: false
                 }
                 property JsonObject booru: JsonObject {
                     property bool allowNsfw: false
@@ -388,10 +430,11 @@ Singleton {
                     property bool bottom: false
                     property bool valueScroll: true
                     property bool clickless: false
-                    property real cornerRegionWidth: 250
-                    property real cornerRegionHeight: 2
+                    property int cornerRegionWidth: 250
+                    property int cornerRegionHeight: 5
                     property bool visualize: false
                     property bool clicklessCornerEnd: true
+                    property int clicklessCornerVerticalOffset: 1
                 }
 
                 property JsonObject quickToggles: JsonObject {
@@ -399,12 +442,12 @@ Singleton {
                     property JsonObject android: JsonObject {
                         property int columns: 5
                         property list<var> toggles: [
-                            { type: "network", size: 2 },
-                            { type: "bluetooth", size: 2 },
-                            { type: "idleInhibitor", size: 1 },
-                            { type: "easyEffects", size: 1 },
-                            { type: "nightLight", size: 2 },
-                            { type: "darkMode", size: 2 }
+                            { "size": 2, "type": "network" },
+                            { "size": 2, "type": "bluetooth"  },
+                            { "size": 1, "type": "idleInhibitor" },
+                            { "size": 1, "type": "mic" },
+                            { "size": 2, "type": "audio" },
+                            { "size": 2, "type": "nightLight" }
                         ]
                     }
                 }
@@ -417,13 +460,18 @@ Singleton {
                 }
             }
 
+            property JsonObject sounds: JsonObject {
+                property bool battery: false
+                property bool pomodoro: false
+                property string theme: "freedesktop"
+            }
+
             property JsonObject time: JsonObject {
                 // https://doc.qt.io/qt-6/qtime.html#toString
                 property string format: "hh:mm"
                 property string shortDateFormat: "dd/MM"
                 property string dateFormat: "ddd, dd/MM"
                 property JsonObject pomodoro: JsonObject {
-                    property string alertSound: ""
                     property int breakTime: 300
                     property int cyclesBeforeLongBreak: 4
                     property int focus: 1500
@@ -445,14 +493,10 @@ Singleton {
                 property int arbitraryRaceConditionDelay: 20 // milliseconds
             }
 
-            property JsonObject screenshotTool: JsonObject {
-                property bool showContentRegions: true
-            }
-
             property JsonObject workSafety: JsonObject {
                 property JsonObject enable: JsonObject {
-                    property bool wallpaper: true
-                    property bool clipboard: true
+                    property bool wallpaper: false
+                    property bool clipboard: false
                 }
                 property JsonObject triggerCondition: JsonObject {
                     property list<string> networkNameKeywords: ["airport", "cafe", "college", "company", "eduroam", "free", "guest", "public", "school", "university"]

@@ -7,7 +7,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import QtQuick
-import "./ai/"
+import qs.services.ai
 
 /**
  * Basic service to handle LLM chats. Supports Google's and OpenAI's API formats.
@@ -767,6 +767,18 @@ Singleton {
 
     function attachFile(filePath: string) {
         root.pendingFilePath = CF.FileUtils.trimFileProtocol(filePath);
+    }
+
+    function regenerate(messageIndex) {
+        if (messageIndex < 0 || messageIndex >= messageIDs.length) return;
+        const id = root.messageIDs[messageIndex];
+        const message = root.messageByID[id];
+        if (message.role !== "assistant") return;
+        // Remove all messages after this one
+        for (let i = root.messageIDs.length - 1; i >= messageIndex; i--) {
+            root.removeMessage(i);
+        }
+        requester.makeRequest();
     }
 
     function createFunctionOutputMessage(name, output, includeOutputInChat = true) {
